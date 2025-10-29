@@ -1,8 +1,8 @@
-import sys
 import os
 import threading
 import keyboard
 from PIL import Image
+import requests
 from winotify import Notification
 import maliang
 import maliang.theme
@@ -78,6 +78,8 @@ class LumineApp:
         
         toast.show()
 
+        self.check_update()
+
         self.root.mainloop()
 
     def wait_key(self, hotkey, callback):
@@ -113,7 +115,34 @@ class LumineApp:
         )
     
     def check_update(self):
-        pass
+        response = requests.get('https://api.github.com/repos/Stevesuk0/Lumine/releases/latest')
+        
+        latest_version = response.json().get('tag_name')
+
+        if latest_version != self.version:
+            Notification(
+                app_id="Lumine",
+                    title="New version detected!",
+                    msg=f"A new version of Lumine is available ({latest_version}).\nClick this pop-up to view the download link.",
+                    icon=os.path.abspath('icons/icon.png'),
+                    launch='https://github.com/Stevesuk0/Lumine/releases'
+            ).show()
+        else:
+            Notification(
+                app_id="Lumine",
+                    title="You're up to date!",
+                    msg=f"Lumine is already on the latest version. ({self.version})",
+                    icon=os.path.abspath('icons/icon.png'),
+            ).show()
+
+
+
+    def toggle_theme(self):
+        current = maliang.theme.get_color_mode()
+
+        match current:
+            case 'dark': maliang.theme.set_color_mode('light')
+            case 'light': maliang.theme.set_color_mode('dark')
 
     def show_tray(self):
         self.tray = Icon("TkTray", icon=Image.open('icons/icon.png').resize((64, 64)), menu=Menu(
@@ -121,7 +150,8 @@ class LumineApp:
             Menu.SEPARATOR,
             MenuItem('Show Window', self.show_window, default=True),
             MenuItem('Reload Configuration', self.reload_config),
-            MenuItem('Check Updates', self.check_update),
+            MenuItem('Toggle Theme', self.toggle_theme),
+            MenuItem('Check Updates...', self.check_update),
             Menu.SEPARATOR,
             MenuItem('Exit', self.root.destroy)
         ))
