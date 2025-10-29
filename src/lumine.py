@@ -23,8 +23,6 @@ class LumineApp:
             Configuration.set(self.config, 'colors', {
                     "temp": "#98C379",
                     "fan": "#61AFEF",
-                    "bg": "#202020",
-                    "outline": "#282C34",
                     "normal": "#98C379",
                     "warning": "#E5C07B",
                     "overheat": "#E06C75",
@@ -88,7 +86,7 @@ class LumineApp:
         toast = Notification(app_id="Lumine",
             title="Configuration reloaded",
             msg="Configuration is reloaded.\nSee more in the Lumine app.",
-            icon=os.path.abspath('icons/balanced.png'),
+            icon=os.path.abspath('icons/icon.png'),
         )
         
         toast.show()
@@ -149,11 +147,8 @@ class LumineApp:
         self.ui_cpu_fan_slitext = maliang.Text(self.cv, position=(ui_cpu_prefix + 349, 155), text='Fan Speed', fontsize=18, family=Configuration.get(self.config, 'font', 'Segoe UI'))
 
         self.ui_modeset = maliang.SegmentedButton(self.cv, position=(25, 205), text=("Balanced", "G-Mode", "Custom"), fontsize=18, family=Configuration.get(self.config, 'font', 'Segoe UI'), command=self.set_mode, default=0)
-        
-        for i in self.ui_modeset.children:
-            i.style.set(bg=('#2B2B2B', '#3C3C3C', '#323232', '#3C3C3C', '#3C3C3C', '#323232'), ol=('', '', '', '', '', ''))
 
-        self.ui_failsafe = maliang.ToggleButton(self.cv, position=(self.size[0] - 195, 205), size=(100, self.ui_modeset.size[1]), text=("Override"), fontsize=18, family=Configuration.get(self.config, 'font', 'Segoe UI'), command=self.toggle_failsafe)
+        self.ui_failsafe = maliang.ToggleButton(self.cv, position=(self.size[0] - 255, 205), size=(140, self.ui_modeset.size[1]), text=("Thermal Bypass"), fontsize=18, family=Configuration.get(self.config, 'font', 'Segoe UI'), command=self.toggle_failsafe)
         self.ui_failsafe_status = maliang.Label(self.cv, position=(self.size[0] - 85, 205), size=(50, self.ui_modeset.size[1]))
 
     def disable_overheat(self):
@@ -191,8 +186,16 @@ class LumineApp:
         
         color_tempbar = colors['temp']
         color_fanbar = colors['fan']
-        color_barbg = colors['bg']
-        color_barol = colors['outline']
+
+        if maliang.theme.get_color_mode() == 'light':
+            color_barbg = '#E1E1E1'
+            color_barol = '#E1E1E1'
+            for i in self.ui_modeset.children: i.style.set(bg=('#FBFBFB', '#FAFAFA', '#F3F3F3', '#EEEEEE', '#F3F3F3', '#F3F3F3'), ol=('', '', '', '', '', ''))
+        else:
+            color_barbg = '#333333'
+            color_barol = '#333333'
+            for i in self.ui_modeset.children: i.style.set(bg=('#2B2B2B', '#3C3C3C', '#323232', '#3C3C3C', '#3C3C3C', '#323232'), ol=('', '', '', '', '', ''))
+
         color_normal = colors['normal']
         color_warning = colors['warning']
         color_overheat = colors['overheat']
@@ -279,7 +282,7 @@ class LumineApp:
                     toast = Notification(app_id="Lumine",
                         title="System overheat!",
                         msg="Detected your computer is overheating. \nSee more in the Lumine app.",
-                        icon=os.path.abspath('icons/performance.png'),
+                        icon=os.path.abspath('icons/warning.png'),
                     )
                     
                     toast.show()
