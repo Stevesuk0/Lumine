@@ -72,7 +72,7 @@ It is a Tkinter GUI for the WMI Dell thermal control interface.
 
 This program requires administrator privileges to run, so the examples below use [`sudo`](https://learn.microsoft.com/windows/advanced-settings/sudo/).
 
-I use uv to manage the Python environment, so you’ll need to install it first:
+I use [`uv`](https://docs.astral.sh/uv) to manage the Python environment, so you’ll need to install it first:
 
 ```bash
 pip install uv
