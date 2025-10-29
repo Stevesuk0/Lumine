@@ -92,7 +92,7 @@ class LumineApp:
         toast.show()
 
     def show_tray(self):
-        self.tray = Icon("TkTray", icon=Image.open('icons/app.png').resize((64, 64)), menu=Menu(
+        self.tray = Icon("TkTray", icon=Image.open('icons/icon.png').resize((64, 64)), menu=Menu(
             MenuItem(text='Lumine v1.0', action=lambda: ...),
             Menu.SEPARATOR,
             MenuItem('Show Window', self.show_window, default=True),
