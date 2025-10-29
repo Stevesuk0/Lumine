@@ -16,8 +16,8 @@ class LumineApp:
 
         self.config = Configuration.use('config')
 
-        if Configuration.get(self.config, 'lumine_version', None) is None:
-            Configuration.set(self.config, 'lumine_version', 'v1.0')
+        if Configuration.get(self.config, 'lumine_version', None) != self.version:
+            Configuration.set(self.config, 'lumine_version', self.version)
             Configuration.set(self.config, 'update_interval', 1000)
             Configuration.set(self.config, 'disable_protect_after', 30)
             Configuration.set(self.config, 'colors', {
@@ -33,6 +33,8 @@ class LumineApp:
             Configuration.set(self.config, 'font', 'Segoe UI')
             Configuration.set(self.config, 'temp_overheat', (85, 95))
             Configuration.set(self.config, 'temp_warning', (72, 85))
+            Configuration.set(self.config, 'g_mode_hotkey', 'f17')
+            Configuration.set(self.config, 'balanced_hotkey', 'f20')
 
             Configuration.sync(self.config)
 
@@ -63,8 +65,8 @@ class LumineApp:
         self.root.after(Configuration.get(self.config, 'update_interval', 1000), self.update_info)
         self.root.protocol("WM_DELETE_WINDOW", self.root.withdraw)
 
-        keyboard.add_hotkey('f17', callback=lambda: self.add_mode_event(1))
-        keyboard.add_hotkey('f20', callback=lambda: self.add_mode_event(0))
+        keyboard.add_hotkey(Configuration.get(self.config, 'g_mode_hotkey', 'f17'), callback=lambda: self.add_mode_event(1))
+        keyboard.add_hotkey(Configuration.get(self.config, 'balanced_mode_hotkey', 'f20'), callback=lambda: self.add_mode_event(0))
         
         self.set_mode(0)
 
@@ -146,7 +148,7 @@ class LumineApp:
         self.ui_cpu_fan_slider.bind_on_update(self.set_fan)
         self.ui_cpu_fan_slitext = maliang.Text(self.cv, position=(ui_cpu_prefix + 349, 155), text='Fan Speed', fontsize=18, family=Configuration.get(self.config, 'font', 'Segoe UI'))
 
-        self.ui_modeset = maliang.SegmentedButton(self.cv, position=(25, 205), text=("Balanced", "Turbo", "Custom"), fontsize=18, family=Configuration.get(self.config, 'font', 'Segoe UI'), command=self.set_mode, default=0)
+        self.ui_modeset = maliang.SegmentedButton(self.cv, position=(25, 205), text=("Balanced", "G-Mode", "Custom"), fontsize=18, family=Configuration.get(self.config, 'font', 'Segoe UI'), command=self.set_mode, default=0)
         
         for i in self.ui_modeset.children:
             i.style.set(bg=('#2B2B2B', '#3C3C3C', '#323232', '#3C3C3C', '#3C3C3C', '#323232'), ol=('', '', '', '', '', ''))
@@ -309,7 +311,7 @@ class LumineApp:
                 case 1:
                     toast = Notification(app_id="Lumine",
                         title="Mode changed",
-                        msg="Turbo mode activated.\nSee more in the Lumine app.",
+                        msg="G-Mode activated.\nSee more in the Lumine app.",
                         icon=os.path.abspath('icons/performance.png'),
                     )
                     

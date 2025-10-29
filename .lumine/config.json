@@ -1,5 +1,5 @@
 {
-  "lumine_version": "v1.0",
+  "lumine_version": "v1.0.1",
   "update_interval": 1000,
   "disable_protect_after": 30,
   "colors": {
@@ -19,5 +19,7 @@
   "temp_warning": [
     72,
     85
-  ]
+  ],
+  "g_mode_hotkey": "f17",
+  "balanced_hotkey": "f20"
 }
