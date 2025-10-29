@@ -8,7 +8,15 @@ import maliang
 import maliang.theme
 from Backend import AWCCThermal, DetectHardware, Configuration
 from pystray import Icon, Menu, MenuItem
-        
+
+from Languages import en_US, zh_CN
+
+####################
+use_language = zh_CN
+####################
+
+Text = use_language.Text
+
 class LumineApp:
     def __init__(self):
         self.size = (900, 270)
@@ -67,18 +75,16 @@ class LumineApp:
         threading.Thread(target=self.wait_key, args=(Configuration.get(self.config, 'balanced_mode_hotkey', 'f20'), lambda: self.add_mode_event(0)), daemon=True).start()
 
         self.set_mode(0)
-
+        threading.Thread(target=self.check_update, daemon=True).start()
         threading.Thread(target=self.show_tray, daemon=True).start()
     
-        toast = Notification(app_id="Lumine",
-            title=f"Welcome to Lumine {self.version}!", 
-            msg="Congrats, finally free from AWCC, huh?", 
+        toast = Notification(app_id='Lumine',
+            title=Text.welcome_title.value.format(version=self.version), 
+            msg=Text.welcome_desc.value, 
             icon=os.path.abspath('icons/icon.png'),
         )
         
         toast.show()
-
-        self.check_update()
 
         self.root.mainloop()
 
@@ -98,9 +104,9 @@ class LumineApp:
     def reload_config(self):
         self.config = Configuration.use('config')
 
-        toast = Notification(app_id="Lumine",
-            title="Configuration reloaded",
-            msg="Configuration is reloaded.\nSee more in the Lumine app.",
+        toast = Notification(app_id='Lumine',
+            title=Text.config_reloaded_title.value,
+            msg=Text.config_reloaded_msg.value,
             icon=os.path.abspath('icons/icon.png'),
         )
         
@@ -108,9 +114,9 @@ class LumineApp:
 
     def show_about(self):
         maliang.TkMessage(
-            title='About Lumine',
-            message=f'Lumine {self.version} by @Stevesuk0',
-            detail='A open-source thermal controller for Dell and Alienware systems.',
+            title=Text.about_title.value,
+            message=Text.about_message.value.format(version=self.version, author='@Stevesuk0'),
+            detail=Text.about_detail.value + f'\n\nThis language "{Text.language_name.value}" was translated by: \n{Text.translate_by.value}',
             option='ok'
         )
     
@@ -121,20 +127,19 @@ class LumineApp:
 
         if latest_version != self.version:
             Notification(
-                app_id="Lumine",
-                    title="New version detected!",
-                    msg=f"A new version of Lumine is available ({latest_version}).\nClick this pop-up to view the download link.",
+                app_id='Lumine',
+                    title=Text.update_new_title.value,
+                    msg=Text.update_new_msg.value.format(latest=latest_version),
                     icon=os.path.abspath('icons/icon.png'),
                     launch='https://github.com/Stevesuk0/Lumine/releases'
             ).show()
         else:
             Notification(
-                app_id="Lumine",
-                    title="You're up to date!",
-                    msg=f"Lumine is already on the latest version. ({self.version})",
+                app_id='Lumine',
+                    title=Text.update_latest_title.value,
+                    msg=Text.update_latest_msg.value.format(version=self.version),
                     icon=os.path.abspath('icons/icon.png'),
             ).show()
-
 
 
     def toggle_theme(self):
@@ -148,12 +153,12 @@ class LumineApp:
         self.tray = Icon("TkTray", icon=Image.open('icons/icon.png').resize((64, 64)), menu=Menu(
             MenuItem(text=f'Lumine {self.version}', action=self.show_about),
             Menu.SEPARATOR,
-            MenuItem('Show Window', self.show_window, default=True),
-            MenuItem('Reload Configuration', self.reload_config),
-            MenuItem('Toggle Theme', self.toggle_theme),
-            MenuItem('Check Updates...', self.check_update),
+            MenuItem(Text.tray_show_window.value, self.show_window, default=True),
+            MenuItem(Text.tray_reload_config.value, self.reload_config),
+            MenuItem(Text.tray_toggle_theme.value, self.toggle_theme),
+            MenuItem(Text.tray_check_updates.value, self.check_update),
             Menu.SEPARATOR,
-            MenuItem('Exit', self.root.destroy)
+            MenuItem(Text.tray_exit.value, self.root.destroy)
         ))
         self.tray.run()
 
@@ -188,15 +193,15 @@ class LumineApp:
         maliang.configs.Env.system = 'Windows11'
         self.ui_gpu_fan_slider = maliang.Slider(self.cv, position=(25, 150), size=(310, 40), default=0.5)
         self.ui_gpu_fan_slider.bind_on_update(self.set_fan)
-        self.ui_gpu_fan_slitext = maliang.Text(self.cv, position=(349, 155), text='Fan Speed', fontsize=18, family=Configuration.get(self.config, 'font', 'Segoe UI'))
+        self.ui_gpu_fan_slitext = maliang.Text(self.cv, position=(349, 155), text=Text.fan_speed.value, fontsize=18, family=Configuration.get(self.config, 'font', 'Segoe UI'))
 
         self.ui_cpu_fan_slider = maliang.Slider(self.cv, position=(ui_cpu_prefix + 25, 150), size=(310, 40), default=0.5)
         self.ui_cpu_fan_slider.bind_on_update(self.set_fan)
-        self.ui_cpu_fan_slitext = maliang.Text(self.cv, position=(ui_cpu_prefix + 349, 155), text='Fan Speed', fontsize=18, family=Configuration.get(self.config, 'font', 'Segoe UI'))
+        self.ui_cpu_fan_slitext = maliang.Text(self.cv, position=(ui_cpu_prefix + 349, 155), text=Text.fan_speed.value, fontsize=18, family=Configuration.get(self.config, 'font', 'Segoe UI'))
 
-        self.ui_modeset = maliang.SegmentedButton(self.cv, position=(25, 205), text=("Balanced", "G-Mode", "Custom"), fontsize=18, family=Configuration.get(self.config, 'font', 'Segoe UI'), command=self.set_mode, default=0)
+        self.ui_modeset = maliang.SegmentedButton(self.cv, position=(25, 205), text=(Text.mode_balanced.value, Text.mode_gmode.value, Text.mode_custom.value), fontsize=18, family=Configuration.get(self.config, 'font', 'Segoe UI'), command=self.set_mode, default=0)
 
-        self.ui_failsafe = maliang.ToggleButton(self.cv, position=(self.size[0] - 255, 205), size=(150, self.ui_modeset.size[1]), text=("Thermal Bypass"), fontsize=18, family=Configuration.get(self.config, 'font', 'Segoe UI'), command=self.toggle_failsafe)
+        self.ui_failsafe = maliang.ToggleButton(self.cv, position=(self.size[0] - 255, 205), size=(150, self.ui_modeset.size[1]), text=Text.failsafe_label.value, fontsize=18, family=Configuration.get(self.config, 'font', 'Segoe UI'), command=self.toggle_failsafe)
         self.ui_failsafe_status = maliang.Label(self.cv, position=(self.size[0] - 85, 205), size=(50, self.ui_modeset.size[1]))
 
     def disable_overheat(self):
@@ -214,12 +219,12 @@ class LumineApp:
         self.ui_gpu_temp.set(self.awccthermal.getFanRelatedTemp(self.hardware.GPUFanIdx) / 95)
         self.ui_gpu_temp_text.set(f'{self.awccthermal.getFanRelatedTemp(self.hardware.GPUFanIdx)} °C')
         self.ui_gpu_fan.set(self.awccthermal._awcc.GetFanRPM(gpu_fan_id) / 5500)
-        self.ui_gpu_fan_text.set(f'{self.awccthermal._awcc.GetFanRPM(gpu_fan_id)} RPM')
+        self.ui_gpu_fan_text.set(f'{self.awccthermal._awcc.GetFanRPM(gpu_fan_id)} {Text.rpm.value}')
 
         self.ui_cpu_temp.set(self.awccthermal.getFanRelatedTemp(self.hardware.CPUFanIdx) / 110)
         self.ui_cpu_temp_text.set(f'{self.awccthermal.getFanRelatedTemp(self.hardware.CPUFanIdx)} °C')
         self.ui_cpu_fan.set(self.awccthermal._awcc.GetFanRPM(cpu_fan_id) / 5500)
-        self.ui_cpu_fan_text.set(f'{self.awccthermal._awcc.GetFanRPM(cpu_fan_id)} RPM')
+        self.ui_cpu_fan_text.set(f'{self.awccthermal._awcc.GetFanRPM(cpu_fan_id)} {Text.rpm.value}')
 
         colors = Configuration.get(self.config, 'colors', {
                         "temp": "#98C379",
@@ -327,9 +332,9 @@ class LumineApp:
         if self.failsafe:
             if overheat:
                 if not self.failsafe_activated:
-                    toast = Notification(app_id="Lumine",
-                        title="System overheat!",
-                        msg="Detected your computer is overheating. \nSee more in the Lumine app.",
+                    toast = Notification(app_id='Lumine',
+                        title=Text.overheat_title.value,
+                        msg=Text.overheat_msg.value,
                         icon=os.path.abspath('icons/warning.png'),
                     )
                     
@@ -351,18 +356,18 @@ class LumineApp:
         if not self.keypressed_mode is None:
             match self.keypressed_mode:
                 case 0:
-                    toast = Notification(app_id="Lumine",
-                        title="Mode changed",
-                        msg="Balanced mode activated.\nSee more in the Lumine app.",
+                    toast = Notification(app_id='Lumine',
+                        title=Text.mode_changed_title.value,
+                        msg=Text.mode_balanced_msg.value,
                         icon=os.path.abspath('icons/balanced.png'),
                     )
                     
                     toast.show()
 
                 case 1:
-                    toast = Notification(app_id="Lumine",
-                        title="Mode changed",
-                        msg="G-Mode activated.\nSee more in the Lumine app.",
+                    toast = Notification(app_id='Lumine',
+                        title=Text.mode_changed_title.value,
+                        msg=Text.mode_gmode_msg.value,
                         icon=os.path.abspath('icons/performance.png'),
                     )
                     
@@ -378,8 +383,8 @@ class LumineApp:
         if type == 'normal':
             self.awccthermal.setMode(self.awccthermal.Mode.Custom)
 
-            cpu_speed = int(self.ui_cpu_fan_slider.get() * 127)
-            gpu_speed = int(self.ui_gpu_fan_slider.get() * 127)
+            cpu_speed = int(self.ui_cpu_fan_slider.get() * 100)
+            gpu_speed = int(self.ui_gpu_fan_slider.get() * 100)
 
             self.awccthermal.setFanSpeed(self.hardware.CPUFanIdx, cpu_speed)
             self.awccthermal.setFanSpeed(self.hardware.GPUFanIdx, gpu_speed)
