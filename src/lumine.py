@@ -12,7 +12,7 @@ from pystray import Icon, Menu, MenuItem
 class LumineApp:
     def __init__(self):
         self.size = (900, 270)
-        self.version = 'v1.2'
+        self.version = 'v1.2.1'
 
         self.config = Configuration.use('config')
 
@@ -63,14 +63,19 @@ class LumineApp:
         self.root.after(Configuration.get(self.config, 'update_interval', 1000), self.update_info)
         self.root.protocol("WM_DELETE_WINDOW", self.root.withdraw)
 
-        keyboard.add_hotkey(Configuration.get(self.config, 'g_mode_hotkey', 'f17'), callback=lambda: self.add_mode_event(1))
-        keyboard.add_hotkey(Configuration.get(self.config, 'balanced_mode_hotkey', 'f20'), callback=lambda: self.add_mode_event(0))
-        
+        threading.Thread(target=self.wait_key, args=(Configuration.get(self.config, 'g_mode_hotkey', 'f17'), lambda: self.add_mode_event(1)), daemon=True).start()
+        threading.Thread(target=self.wait_key, args=(Configuration.get(self.config, 'balanced_mode_hotkey', 'f20'), lambda: self.add_mode_event(0)), daemon=True).start()
+
         self.set_mode(0)
 
         threading.Thread(target=self.show_tray, daemon=True).start()
 
         self.root.mainloop()
+
+    def wait_key(self, hotkey, callback):
+        while True:
+            keyboard.wait(hotkey)
+            callback()
 
     def add_mode_event(self, mode):
         self.keypressed_mode = mode
