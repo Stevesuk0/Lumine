@@ -66,7 +66,7 @@ If this alternative works out for you, you can safely remove from your PC:
 
 It is a Tkinter GUI for the WMI Dell thermal control interface.
 
-I have somewhat documented my findings on the WMI [here](WMI-AWCC-doc.md).
+@AlexIII have somewhat documented his findings on the WMI [here](https://github.com/AlexIII/tcc-g15/blob/master/WMI-AWCC-doc.md).
 
 ## How to Run from the Source
 
