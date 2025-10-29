@@ -39,7 +39,7 @@ class Text(Enum):
     mode_custom = "自定义模式"
     mode_changed_title = "模式已切换"
     mode_balanced_msg = "已切换至平衡模式。\n可在 Lumine 应用中查看更多信息。"
-    mode_gmode_msg = "已切换至 G 模式。\n可在 Lumine 应用中查看更多信息。"
+    mode_gmode_msg = "已切换至 G-Mode。\n可在 Lumine 应用中查看更多信息。"
 
     # 过热保护
     overheat_title = "系统过热警告！"
