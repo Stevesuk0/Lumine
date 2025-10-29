@@ -111,6 +111,9 @@ class LumineApp:
             detail='A open-source thermal controller for Dell and Alienware systems.',
             option='ok'
         )
+    
+    def check_update(self):
+        pass
 
     def show_tray(self):
         self.tray = Icon("TkTray", icon=Image.open('icons/icon.png').resize((64, 64)), menu=Menu(
@@ -118,6 +121,8 @@ class LumineApp:
             Menu.SEPARATOR,
             MenuItem('Show Window', self.show_window, default=True),
             MenuItem('Reload Configuration', self.reload_config),
+            MenuItem('Check Updates', self.check_update),
+            Menu.SEPARATOR,
             MenuItem('Exit', self.root.destroy)
         ))
         self.tray.run()
@@ -161,7 +166,7 @@ class LumineApp:
 
         self.ui_modeset = maliang.SegmentedButton(self.cv, position=(25, 205), text=("Balanced", "G-Mode", "Custom"), fontsize=18, family=Configuration.get(self.config, 'font', 'Segoe UI'), command=self.set_mode, default=0)
 
-        self.ui_failsafe = maliang.ToggleButton(self.cv, position=(self.size[0] - 255, 205), size=(140, self.ui_modeset.size[1]), text=("Thermal Bypass"), fontsize=18, family=Configuration.get(self.config, 'font', 'Segoe UI'), command=self.toggle_failsafe)
+        self.ui_failsafe = maliang.ToggleButton(self.cv, position=(self.size[0] - 255, 205), size=(150, self.ui_modeset.size[1]), text=("Thermal Bypass"), fontsize=18, family=Configuration.get(self.config, 'font', 'Segoe UI'), command=self.toggle_failsafe)
         self.ui_failsafe_status = maliang.Label(self.cv, position=(self.size[0] - 85, 205), size=(50, self.ui_modeset.size[1]))
 
     def disable_overheat(self):
