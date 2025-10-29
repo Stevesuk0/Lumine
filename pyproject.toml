@@ -1,12 +1,13 @@
 [project]
-name = "tcc-g15"
-version = "0.1.0"
-description = "Add your description here"
+name = "Lumine"
+version = "1.0"
+description = "A thermal controller for Dell and Alienware systems - open source alternative to AWCC"
 readme = "README.md"
 requires-python = ">=3.14"
 dependencies = [
     "keyboard>=0.13.5",
     "maliang[opt]>=3.1.5",
+    "pyinstaller>=6.16.0",
     "pystray>=0.19.5",
     "winotify>=1.1.0",
     "wmi>=1.5.1",

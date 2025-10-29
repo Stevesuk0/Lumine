@@ -1,0 +1,23 @@
+{
+  "lumine_version": "v1.0",
+  "update_interval": 1000,
+  "disable_protect_after": 30,
+  "colors": {
+    "temp": "#98C379",
+    "fan": "#61AFEF",
+    "bg": "#202020",
+    "outline": "#282C34",
+    "normal": "#98C379",
+    "warning": "#E5C07B",
+    "overheat": "#E06C75"
+  },
+  "font": "Segoe UI",
+  "temp_overheat": [
+    85,
+    95
+  ],
+  "temp_warning": [
+    72,
+    85
+  ]
+}
