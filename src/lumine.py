@@ -348,7 +348,7 @@ class LumineApp:
                 self.ui_gpu_fan_slider.disable(False)
                 self.ui_cpu_fan_slider.disable(False)
                 self.awccthermal.setMode(self.awccthermal.Mode.Custom)
-                self.set_fan('normal')
+                self.set_fan('normal', '')
 
     def toggle_failsafe(self, value):
         self.failsafe = not value
