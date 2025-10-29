@@ -5,6 +5,7 @@ Open-source alternative to AWCC*
 [Download link](https://github.com/Stevesuk0/Lumine/releases)
 
 <img src=".static/image.png" alt="Screenshot 1" width="600" />
+<img src=".static/image-light.png" alt="Screenshot 2" width="600" />
 
 <br/>
 
