@@ -12,7 +12,7 @@ from pystray import Icon, Menu, MenuItem
 class LumineApp:
     def __init__(self):
         self.size = (900, 270)
-        self.version = 'v1.0.1'
+        self.version = 'v1.1'
 
         self.config = Configuration.use('config')
 
