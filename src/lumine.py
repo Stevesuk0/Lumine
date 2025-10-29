@@ -9,16 +9,16 @@ import maliang.theme
 from Backend import AWCCThermal, DetectHardware, Configuration
 from pystray import Icon, Menu, MenuItem
 
-from Languages import de_DE, en_US, es_ES, fr_FR, ja_JP, ko_KR, ru_RU, zh_CN, zh_TW
+from Languages import en_US, ja_JP, ru_RU, zh_CN, zh_TW
 
 ######################
 # use_language = de_DE
-# use_language = en_US
+use_language = en_US
 # use_language = es_ES
 # use_language = fr_FR
 # use_language = ja_JP
 # use_language = ko_KR
-use_language = ru_RU
+# use_language = ru_RU
 # use_language = zh_CN
 # use_language = zh_TW
 ######################
