@@ -69,6 +69,14 @@ class LumineApp:
         self.set_mode(0)
 
         threading.Thread(target=self.show_tray, daemon=True).start()
+    
+        toast = Notification(app_id="Lumine",
+            title=f"Welcome to Lumine {self.version}!", 
+            msg="Congrats, finally free from AWCC, huh?", 
+            icon=os.path.abspath('icons/icon.png'),
+        )
+        
+        toast.show()
 
         self.root.mainloop()
 
