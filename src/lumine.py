@@ -12,7 +12,7 @@ from pystray import Icon, Menu, MenuItem
 class LumineApp:
     def __init__(self):
         self.size = (900, 270)
-        self.version = 'v1.0'
+        self.version = 'v1.0.1'
 
         self.config = Configuration.use('config')
 
@@ -43,7 +43,7 @@ class LumineApp:
         self.original_mode = 0
         self.keypressed_mode = None
         
-        self.failsafe = False
+        self.failsafe = True
         self.failsafe_activated = False
 
         self.awccthermal = AWCCThermal.AWCCThermal()
@@ -91,9 +91,17 @@ class LumineApp:
         
         toast.show()
 
+    def show_about(self):
+        maliang.TkMessage(
+            title='About Lumine',
+            message=f'Lumine {self.version} by @Stevesuk0',
+            detail='A open-source thermal controller for Dell and Alienware systems.',
+            option='ok'
+        )
+
     def show_tray(self):
         self.tray = Icon("TkTray", icon=Image.open('icons/icon.png').resize((64, 64)), menu=Menu(
-            MenuItem(text='Lumine v1.0', action=lambda: ...),
+            MenuItem(text=f'Lumine {self.version}', action=self.show_about),
             Menu.SEPARATOR,
             MenuItem('Show Window', self.show_window, default=True),
             MenuItem('Reload Configuration', self.reload_config),
@@ -143,7 +151,7 @@ class LumineApp:
         for i in self.ui_modeset.children:
             i.style.set(bg=('#2B2B2B', '#3C3C3C', '#323232', '#3C3C3C', '#3C3C3C', '#323232'), ol=('', '', '', '', '', ''))
 
-        self.ui_failsafe = maliang.ToggleButton(self.cv, position=(self.size[0] - 195, 205), size=(100, self.ui_modeset.size[1]), text=("Fail-Safe"), fontsize=18, family=Configuration.get(self.config, 'font', 'Segoe UI'), command=self.toggle_failsafe)
+        self.ui_failsafe = maliang.ToggleButton(self.cv, position=(self.size[0] - 195, 205), size=(100, self.ui_modeset.size[1]), text=("Override"), fontsize=18, family=Configuration.get(self.config, 'font', 'Segoe UI'), command=self.toggle_failsafe)
         self.ui_failsafe_status = maliang.Label(self.cv, position=(self.size[0] - 85, 205), size=(50, self.ui_modeset.size[1]))
 
     def disable_overheat(self):
@@ -230,6 +238,8 @@ class LumineApp:
         overheat = gpu_temp > self.failsafe_gpu or cpu_temp > self.failsafe_cpu
 
         if gpu_temp >= self.warning_gpu:
+            if not self.failsafe_activated:
+                self.ui_failsafe_status.style.set(bg=(color_warning, color_warning)) 
             self.ui_gpu_temp.style.set(
                 bg_bar  = (color_warning, color_warning), 
                 ol_bar  = (color_warning, color_warning), 
@@ -244,6 +254,8 @@ class LumineApp:
                 ol_slot = (color_barol, color_barol),
             )
         if cpu_temp >= self.warning_cpu:
+            if not self.failsafe_activated:
+                self.ui_failsafe_status.style.set(bg=(color_warning, color_warning)) 
             self.ui_cpu_temp.style.set(
                 bg_bar  = (color_warning, color_warning), 
                 ol_bar  = (color_warning, color_warning), 
@@ -269,9 +281,8 @@ class LumineApp:
                     )
                     
                     toast.show()
-                    self.ui_failsafe_status.style.set(bg=(color_warning, color_warning)) 
                     self.failsafe_activated = True
-                else:
+
                     self.ui_failsafe_status.style.set(bg=(color_overheat, color_overheat))
                     self.original_mode = self.current_mode
                     self.awccthermal.setMode(self.awccthermal.Mode.G_Mode)
@@ -338,7 +349,7 @@ class LumineApp:
                 self.set_fan('normal')
 
     def toggle_failsafe(self, value):
-        self.failsafe = value
+        self.failsafe = not value
 
 if __name__ == "__main__":
     LumineApp()
