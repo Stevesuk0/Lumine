@@ -1,5 +1,7 @@
 # ✨ Lumine
 
+- Huge thanks to @AlexIII's [Thermal Control Center](https://github.com/AlexIII/tcc-g15)
+
 Open-source alternative to AWCC*
 
 [Download link](https://github.com/Stevesuk0/Lumine/releases)
