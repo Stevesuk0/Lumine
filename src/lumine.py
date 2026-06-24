@@ -21,7 +21,7 @@ import winreg
 use_language = en_US
 # use_language = hi_IN
 # use_language = ja_JP
-use_language = ko_KR
+# use_language = ko_KR
 # use_language = ru_RU
 # use_language = zh_CN
 # use_language = zh_TW
