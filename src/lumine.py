@@ -9,21 +9,31 @@ import maliang.theme
 from Backend import AWCCThermal, DetectHardware, Configuration
 from pystray import Icon, Menu, MenuItem
 
-from Languages import en_US, ja_JP, ru_RU, zh_CN, zh_TW
+from Languages import en_US, zh_CN
+
+import win32event
+import win32api
+import winerror
+import sys
 
 ######################
-# use_language = de_DE
 use_language = en_US
-# use_language = es_ES
-# use_language = fr_FR
-# use_language = ja_JP
-# use_language = ko_KR
-# use_language = ru_RU
 # use_language = zh_CN
-# use_language = zh_TW
 ######################
 
 Text = use_language.Text
+
+mutex = win32event.CreateMutex(None, False, "Global\\Lumine")
+
+if win32api.GetLastError() == winerror.ERROR_ALREADY_EXISTS:
+    maliang.TkMessage(
+        title=Text.app_name.value,
+        message=Text.already_started.value,
+        detail=Text.already_started_detailed.value,
+        option='ok',
+        icon='warning'
+    )
+    sys.exit()
 
 class LumineApp:
     def __init__(self):
@@ -33,24 +43,8 @@ class LumineApp:
         self.config = Configuration.use('config')
 
         if Configuration.get(self.config, 'lumine_version', None) != self.version:
-            Configuration.set(self.config, 'lumine_version', self.version)
-            Configuration.set(self.config, 'update_interval', 1000)
-            Configuration.set(self.config, 'disable_protect_after', 30)
-            Configuration.set(self.config, 'colors', {
-                    "temp": "#98C379",
-                    "fan": "#61AFEF",
-                    "normal": "#98C379",
-                    "warning": "#E5C07B",
-                    "overheat": "#E06C75",
-                }
-            )
-            Configuration.set(self.config, 'font', 'Segoe UI')
-            Configuration.set(self.config, 'temp_overheat', (85, 95))
-            Configuration.set(self.config, 'temp_warning', (72, 85))
-            Configuration.set(self.config, 'g_mode_hotkey', 'f17')
-            Configuration.set(self.config, 'balanced_hotkey', 'f20')
-
-            Configuration.sync(self.config)
+            Configuration.raw_sync(self.config, Text.example_config.value)
+            self.config = Configuration.use('config')
 
         self.awcc = AWCCThermal.AWCCThermal()
         self.hardware = DetectHardware.DetectHardware()
@@ -79,20 +73,12 @@ class LumineApp:
         self.root.after(Configuration.get(self.config, 'update_interval', 1000), self.update_info)
         self.root.protocol("WM_DELETE_WINDOW", self.root.withdraw)
 
-        threading.Thread(target=self.wait_key, args=(Configuration.get(self.config, 'g_mode_hotkey', 'f17'), lambda: self.add_mode_event(1)), daemon=True).start()
-        threading.Thread(target=self.wait_key, args=(Configuration.get(self.config, 'balanced_mode_hotkey', 'f20'), lambda: self.add_mode_event(0)), daemon=True).start()
+        threading.Thread(target=self.wait_key, args=(Configuration.get(self.config, 'g_mode_hotkey', 'f17'), lambda: self.add_mode_event(2)), daemon=True).start()
+        threading.Thread(target=self.wait_key, args=(Configuration.get(self.config, 'balanced_mode_hotkey', 'f20'), lambda: self.add_mode_event(1)), daemon=True).start()
 
         self.set_mode(0)
         threading.Thread(target=self.check_update, daemon=True).start()
         threading.Thread(target=self.show_tray, daemon=True).start()
-    
-        toast = Notification(app_id='Lumine',
-            title=Text.welcome_title.value.format(version=self.version), 
-            msg=Text.welcome_desc.value, 
-            icon=os.path.abspath('icons/icon.png'),
-        )
-        
-        toast.show()
 
         self.root.mainloop()
 
@@ -213,26 +199,27 @@ class LumineApp:
         self.ui_failsafe_status = maliang.Label(self.cv, position=(self.size[0] - 85, 205), size=(50, self.ui_modeset.size[1]))
 
     def disable_overheat(self):
-        self.set_mode(self.original_mode)
-        self.ui_modeset.set(self.original_mode)
+        if not self.failsafe_activated:
+            self.set_mode(self.original_mode)
+            self.ui_modeset.set(self.original_mode)
 
-        self.failsafe_activated = False
+            self.failsafe_activated = False
 
-        self.current_mode = self.original_mode
+            self.current_mode = self.original_mode
 
     def update_info(self):
-        gpu_fan_id = self.awccthermal._fanIdsAndRelatedSensorsIds[self.hardware.GPUFanIdx][0]
-        cpu_fan_id = self.awccthermal._fanIdsAndRelatedSensorsIds[self.hardware.CPUFanIdx][0]
+        gpu_fan_id = self.awccthermal.GPUFanIdx
+        cpu_fan_id = self.awccthermal.CPUFanIdx
 
         self.ui_gpu_temp.set(self.awccthermal.getFanRelatedTemp(self.hardware.GPUFanIdx) / 95)
         self.ui_gpu_temp_text.set(f'{self.awccthermal.getFanRelatedTemp(self.hardware.GPUFanIdx)} °C')
-        self.ui_gpu_fan.set(self.awccthermal._awcc.GetFanRPM(gpu_fan_id) / 5500)
-        self.ui_gpu_fan_text.set(f'{self.awccthermal._awcc.GetFanRPM(gpu_fan_id)} {Text.rpm.value}')
+        self.ui_gpu_fan.set(self.awccthermal.getFanRPM(gpu_fan_id) / 6000)
+        self.ui_gpu_fan_text.set(f'{self.awccthermal.getFanRPM(gpu_fan_id)} {Text.rpm.value}')
 
         self.ui_cpu_temp.set(self.awccthermal.getFanRelatedTemp(self.hardware.CPUFanIdx) / 110)
         self.ui_cpu_temp_text.set(f'{self.awccthermal.getFanRelatedTemp(self.hardware.CPUFanIdx)} °C')
-        self.ui_cpu_fan.set(self.awccthermal._awcc.GetFanRPM(cpu_fan_id) / 5500)
-        self.ui_cpu_fan_text.set(f'{self.awccthermal._awcc.GetFanRPM(cpu_fan_id)} {Text.rpm.value}')
+        self.ui_cpu_fan.set(self.awccthermal.getFanRPM(cpu_fan_id) / 6000)
+        self.ui_cpu_fan_text.set(f'{self.awccthermal.getFanRPM(cpu_fan_id)} {Text.rpm.value}')
 
         colors = Configuration.get(self.config, 'colors', {
                         "temp": "#98C379",
@@ -340,13 +327,6 @@ class LumineApp:
         if self.failsafe:
             if overheat:
                 if not self.failsafe_activated:
-                    toast = Notification(app_id='Lumine',
-                        title=Text.overheat_title.value,
-                        msg=Text.overheat_msg.value,
-                        icon=os.path.abspath('icons/warning.png'),
-                    )
-                    
-                    toast.show()
                     self.failsafe_activated = True
 
                     self.ui_failsafe_status.style.set(bg=(color_overheat, color_overheat))
@@ -363,7 +343,7 @@ class LumineApp:
 
         if not self.keypressed_mode is None:
             match self.keypressed_mode:
-                case 0:
+                case 1:
                     toast = Notification(app_id='Lumine',
                         title=Text.mode_changed_title.value,
                         msg=Text.mode_balanced_msg.value,
@@ -372,7 +352,7 @@ class LumineApp:
                     
                     toast.show()
 
-                case 1:
+                case 2:
                     toast = Notification(app_id='Lumine',
                         title=Text.mode_changed_title.value,
                         msg=Text.mode_gmode_msg.value,
@@ -388,11 +368,18 @@ class LumineApp:
         self.root.after(Configuration.get(self.config, 'update_interval'), self.update_info)
 
     def set_fan(self, type, _):
+        if type == 'hover' or type == 'active':
+            self.ui_gpu_fan_slitext.set(str(int(self.ui_gpu_fan_slider.get() * 100)) + '%')
+            self.ui_cpu_fan_slitext.set(str(int(self.ui_cpu_fan_slider.get() * 100)) + '%')
+
         if type == 'normal':
+            self.ui_gpu_fan_slitext.set(Text.fan_speed.value)
+            self.ui_cpu_fan_slitext.set(Text.fan_speed.value)
+
             self.awccthermal.setMode(self.awccthermal.Mode.Custom)
 
-            cpu_speed = int(self.ui_cpu_fan_slider.get() * 100)
-            gpu_speed = int(self.ui_gpu_fan_slider.get() * 100)
+            cpu_speed = int(self.ui_cpu_fan_slider.get() * 120)
+            gpu_speed = int(self.ui_gpu_fan_slider.get() * 120)
 
             self.awccthermal.setFanSpeed(self.hardware.CPUFanIdx, cpu_speed)
             self.awccthermal.setFanSpeed(self.hardware.GPUFanIdx, gpu_speed)
