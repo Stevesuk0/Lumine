@@ -30,8 +30,10 @@ class Text(Enum):
     # Tray menu
     tray_show_window = "Show Window"
     tray_reload_config = "Reload Configuration"
+    tray_edit_config = "Edit Configuration..."
     tray_toggle_theme = "Toggle Theme"
     tray_check_updates = "Check Updates..."
+    tray_start_on_startup = "Toggle start on startup"
     tray_exit = "Exit"
 
     # Modes

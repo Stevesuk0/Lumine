@@ -30,8 +30,10 @@ class Text(Enum):
     # Tray menu
     tray_show_window = "显示窗口"
     tray_reload_config = "重新加载配置"
+    tray_edit_config = "编辑配置文件..."
     tray_toggle_theme = "切换主题"
     tray_check_updates = "检查更新..."
+    tray_start_on_startup = "设置开机自启动"
     tray_exit = "退出"
 
     # Modes
