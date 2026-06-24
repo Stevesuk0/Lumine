@@ -38,7 +38,7 @@ if win32api.GetLastError() == winerror.ERROR_ALREADY_EXISTS:
 class LumineApp:
     def __init__(self):
         self.size = (900, 270)
-        self.version = 'v1.3'
+        self.version = 'v1.4'
 
         self.config = Configuration.use('config')
 

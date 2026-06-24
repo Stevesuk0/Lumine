@@ -58,7 +58,7 @@ lumine_version: v1.4
 # 单位：毫秒
 update_interval: 1000
 
-# 系统恢复正常后，保护模式自动关闭的延迟时间
+# 系统恢复正常后，G-Mode 自动关闭的延迟时间
 # 单位：秒
 disable_protect_after: 30
 

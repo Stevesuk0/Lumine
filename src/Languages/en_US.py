@@ -58,7 +58,7 @@ lumine_version: v1.4
 # Unit: milliseconds.
 update_interval: 1000
 
-# Time (in seconds) after which protection mode will be automatically disabled
+# Time (in seconds) after which G-Mode will be automatically disabled
 # when the system is no longer overheating.
 # Unit: seconds.
 disable_protect_after: 30
