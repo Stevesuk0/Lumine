@@ -15,6 +15,7 @@ import win32event
 import win32api
 import winerror
 import sys
+import winreg
 
 ######################
 use_language = en_US
@@ -182,13 +183,19 @@ class LumineApp:
                 Menu.SEPARATOR,
                 MenuItem(Text.tray_show_window.value, self.show_window, default=True),
                 MenuItem(Text.tray_reload_config.value, self.reload_config),
+                MenuItem(Text.tray_edit_config.value, self.edit_config),
                 MenuItem(Text.tray_toggle_theme.value, self.toggle_theme),
                 MenuItem(Text.tray_check_updates.value, self.check_update),
+                MenuItem(Text.tray_start_on_startup.value, self.toggle_startup, checked=lambda item: self.is_startup_registered()),
                 Menu.SEPARATOR,
                 MenuItem(Text.tray_exit.value, self.root.destroy),
             ),
         )
         self.tray.run()
+
+    def edit_config(self):
+        path = os.path.abspath(f"{Configuration.root_config_path}/{self.config[0]}.yaml")
+        os.startfile(path)
 
     def create_window(self):
         self.root = maliang.Tk(size=self.size)
@@ -568,6 +575,48 @@ class LumineApp:
         print(self.failsafe)
         self.failsafe = value
 
+    def is_startup_registered(self):
+        try:
+            key = winreg.OpenKey(
+                winreg.HKEY_CURRENT_USER,
+                r"Software\Microsoft\Windows\CurrentVersion\Run",
+                0,
+                winreg.KEY_READ,
+            )
+            winreg.QueryValueEx(key, "Lumine")
+            winreg.CloseKey(key)
+            return True
+        except FileNotFoundError:
+            return False
+
+    def register_startup(self):
+        key = winreg.OpenKey(
+            winreg.HKEY_CURRENT_USER,
+            r"Software\Microsoft\Windows\CurrentVersion\Run",
+            0,
+            winreg.KEY_SET_VALUE,
+        )
+        winreg.SetValueEx(key, "Lumine", 0, winreg.REG_SZ, sys.executable)
+        winreg.CloseKey(key)
+
+    def unregister_startup(self):
+        try:
+            key = winreg.OpenKey(
+                winreg.HKEY_CURRENT_USER,
+                r"Software\Microsoft\Windows\CurrentVersion\Run",
+                0,
+                winreg.KEY_SET_VALUE,
+            )
+            winreg.DeleteValue(key, "Lumine")
+            winreg.CloseKey(key)
+        except FileNotFoundError:
+            pass
+
+    def toggle_startup(self, icon, item):
+        if self.is_startup_registered():
+            self.unregister_startup()
+        else:
+            self.register_startup()
 
 if __name__ == "__main__":
     LumineApp()
