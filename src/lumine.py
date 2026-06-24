@@ -174,12 +174,16 @@ class LumineApp:
             case "light":
                 maliang.theme.set_color_mode("dark")
 
+    def open_github(self):
+        os.startfile('https://github.com/Stevesuk0/Lumine')
+
     def show_tray(self):
         self.tray = Icon(
             "TkTray",
             icon=Image.open("icons/icon.png").resize((64, 64)),
             menu=Menu(
                 MenuItem(text=f"Lumine {self.version}", action=self.show_about),
+                MenuItem(text=f"View Source Code...", action=self.open_github),
                 Menu.SEPARATOR,
                 MenuItem(Text.tray_show_window.value, self.show_window, default=True),
                 MenuItem(Text.tray_reload_config.value, self.reload_config),
