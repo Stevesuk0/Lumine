@@ -328,8 +328,9 @@ class LumineApp:
 
     def disable_overheat(self):
         self.failsafe_activated = False
-        self.set_mode(self.original_mode)
-        self.ui_modeset.set(self.original_mode)
+        if not self.failsafe:
+            self.set_mode(self.original_mode)
+            self.ui_modeset.set(self.original_mode)
 
     def update_info(self):
         gpu_fan_id = self.awccthermal.GPUFanIdx
@@ -508,29 +509,31 @@ class LumineApp:
             self.ui_failsafe_status.style.set(bg=("#2B2B2B", "#2B2B2B"))
 
         if self.keypressed_mode is not None:
-            match self.keypressed_mode:
-                case 1:
-                    toast = Notification(
-                        app_id="Lumine",
-                        title=Text.mode_changed_title.value,
-                        msg=Text.mode_balanced_msg.value,
-                        icon=os.path.abspath("icons/balanced.png"),
-                    )
+            if not self.failsafe:
+                match self.keypressed_mode:
+                    case 1:
+                        toast = Notification(
+                            app_id="Lumine",
+                            title=Text.mode_changed_title.value,
+                            msg=Text.mode_balanced_msg.value,
+                            icon=os.path.abspath("icons/balanced.png"),
+                        )
 
-                    toast.show()
+                        toast.show()
 
-                case 2:
-                    toast = Notification(
-                        app_id="Lumine",
-                        title=Text.mode_changed_title.value,
-                        msg=Text.mode_gmode_msg.value,
-                        icon=os.path.abspath("icons/performance.png"),
-                    )
+                    case 2:
+                        toast = Notification(
+                            app_id="Lumine",
+                            title=Text.mode_changed_title.value,
+                            msg=Text.mode_gmode_msg.value,
+                            icon=os.path.abspath("icons/performance.png"),
+                        )
 
-                    toast.show()
+                        toast.show()
 
-            self.set_mode(self.keypressed_mode - 1)
-            self.ui_modeset.set(self.keypressed_mode)
+                self.set_mode(self.keypressed_mode - 1)
+                self.ui_modeset.set(self.keypressed_mode)
+
             self.keypressed_mode = None
 
         self.root.after(
