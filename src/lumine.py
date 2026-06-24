@@ -9,7 +9,7 @@ import maliang.theme
 from Backend import AWCCThermal, DetectHardware, Configuration
 from pystray import Icon, Menu, MenuItem
 
-from Languages import en_US, zh_CN
+from Languages import en_US, hi_IN, ja_JP, ko_KR, ru_RU, zh_CN, zh_TW
 
 import win32event
 import win32api
@@ -18,7 +18,12 @@ import sys
 
 ######################
 use_language = en_US
+# use_language = hi_IN
+# use_language = ja_JP
+# use_language = ko_KR
+# use_language = ru_RU
 # use_language = zh_CN
+# use_language = zh_TW
 ######################
 
 Text = use_language.Text
