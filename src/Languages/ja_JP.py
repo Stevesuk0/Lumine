@@ -28,6 +28,7 @@ class Text(Enum):
     about_message = "Lumine {version}（作者：{author}）"
 
     # Tray menu
+    tray_view_source = "ソースコードを表示..."
     tray_show_window = "ウィンドウを表示"
     tray_reload_config = "設定を再読み込み"
     tray_edit_config = "設定を編集..."

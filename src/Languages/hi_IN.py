@@ -28,6 +28,7 @@ class Text(Enum):
     about_message = "Lumine {version}, {author} द्वारा"
 
     # Tray menu
+    tray_view_source = "स्रोत कोड देखें..."
     tray_show_window = "विंडो दिखाएं"
     tray_reload_config = "कॉन्फ़िगरेशन पुनः लोड करें"
     tray_edit_config = "कॉन्फ़िगरेशन संपादित करें..."

@@ -28,6 +28,7 @@ class Text(Enum):
     about_message = "Lumine {version} 由 {author} 開發"
 
     # Tray menu
+    tray_view_source = "查看原始碼..."
     tray_show_window = "顯示視窗"
     tray_reload_config = "重新載入設定"
     tray_edit_config = "編輯設定檔..."

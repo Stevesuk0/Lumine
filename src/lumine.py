@@ -21,7 +21,7 @@ import winreg
 use_language = en_US
 # use_language = hi_IN
 # use_language = ja_JP
-# use_language = ko_KR
+use_language = ko_KR
 # use_language = ru_RU
 # use_language = zh_CN
 # use_language = zh_TW
@@ -183,7 +183,7 @@ class LumineApp:
             icon=Image.open("icons/icon.png").resize((64, 64)),
             menu=Menu(
                 MenuItem(text=f"Lumine {self.version}", action=self.show_about),
-                MenuItem(text=f"View Source Code...", action=self.open_github),
+                MenuItem(Text.tray_view_source.value, self.open_github),
                 Menu.SEPARATOR,
                 MenuItem(Text.tray_show_window.value, self.show_window, default=True),
                 MenuItem(Text.tray_reload_config.value, self.reload_config),

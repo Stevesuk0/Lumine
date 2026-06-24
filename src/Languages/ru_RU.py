@@ -28,6 +28,7 @@ class Text(Enum):
     about_message = "Lumine {version} от {author}"
 
     # Tray menu
+    tray_view_source = "Просмотреть исходный код..."
     tray_show_window = "Показать окно"
     tray_reload_config = "Перезагрузить конфигурацию"
     tray_edit_config = "Изменить конфигурацию..."
