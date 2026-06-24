@@ -1,10 +1,11 @@
 # ✨ Lumine
 
-- Huge thanks to @AlexIII's [Thermal Control Center](https://github.com/AlexIII/tcc-g15)
+- Huge thanks to @AlexIII for the original [Thermal Control Center](https://github.com/AlexIII/tcc-g15).
 
-Open-source alternative to AWCC*
 
-[Download link](https://github.com/Stevesuk0/Lumine/releases)
+Open-source alternative to AWCC (Dell’s Alienware Command Center)
+
+[Download latest release](https://github.com/Stevesuk0/Lumine/releases)
 
 <img src=".static/image.png" alt="Screenshot 1" width="600" />
 <img src=".static/image-light.png" alt="Screenshot 2" width="600" />
@@ -39,37 +40,31 @@ Please report if it worked / didn't work for you. Your feedback is highly apprec
 
 ## Limitations
 
-- Manual fan control is not *really* manual. If you set fan speed too low, the BIOS will take over and raise the fan speed automatically when the GPU/CPU temperature reaches a certain point to prevent overheating.
+- Fan control is not fully manual. The BIOS may override settings if temperatures become unsafe.
 
-- On rare occasions, the driver may report bogus GPU temperature. [See this issue.](https://github.com/AlexIII/tcc-g15/issues/9)
+- In rare cases, GPU temperature readings may be incorrect. [See this issue of TCC-G15](https://github.com/AlexIII/tcc-g15/issues/9)
 
-- Switching the thermal mode to "G-mode" and back **may result in a second-long system-wide freeze** (at the exact moment when the switch is happening). This is a known issue with Dell's thermal control interface. Cannot be fixed. Make sure to disable the fail-safe feature if you don't want the app to switch the thermal mode automatically.
+- Switching between `G-Mode` and other modes may cause a brief system-wide freeze (about 1 second). This is a known limitation of Dell’s thermal interface and **cannot** be fixed.
 
-# Why AWCC Sucks
+## Why AWCC Is Frustrating
+No built-in `G-Mode` toggle. you need workarounds just to control it properly
+Fan control settings often do not work as expected
+Heavy and slow UI for very basic functionality
+Reported telemetry behavior without opt-out options
+Frequent crashes and instability
+Sometimes refuses to launch when needed most.
 
-- ❌ No in-app option to toggle G-Mode — you have to mess with other tools just to switch it off
+If Lumine works well for you, you can safely remove:
 
-- ❌ Manual fan control is broken — changing the settings does nothing
-
-- ❌ Bloated and sluggish — flashy UI, but can’t even handle basic functions properly
-
-- ❌ Secretly collects user data (see AWCC Telemetry Details)
-
-- ❌ Crashes often — you’ll see more error pop-ups than actual performance gains
-
-- ❌ ****I can never get it to open when I need it.****
-
-If this alternative works out for you, you can safely remove from your PC:
-
-- Alieanware CC Components
-- Alieanware Command Center Suite
-- Alieanware OC Controls
+- Alienware Command Center components
+- Alienware Command Center Suite
+- Alienware OC Controls
 
 ## How It Works
 
-It is a Tkinter GUI for the WMI Dell thermal control interface.
+Lumine is a Tkinter-based GUI that interacts with Dell’s WMI thermal control interface.
 
-@AlexIII have somewhat documented his findings on the WMI [here](https://github.com/AlexIII/tcc-g15/blob/master/WMI-AWCC-doc.md).
+Much of the underlying research comes from [@AlexIII's documentation](https://github.com/AlexIII/tcc-g15/blob/master/WMI-AWCC-doc.md).
 
 ## How to Run from the Source
 
@@ -93,10 +88,12 @@ uv sync
 Run
 
 ```bash
-sudo python3 src\lumine.py
+sudo uv run src\lumine.py
 ```
 
 ## About the AWCC Telemetry
+
+AWCC is reported to send telemetry data without an opt-out option.
 
 I know it's probably not going to surprise anyone, given the times we're living in, 
 but AWCC silently sends some telemetry without the possibility of opting out.
@@ -116,8 +113,14 @@ Big thanks to the amazing people who have contributed to the project:
 - @T7imal, @cemkaya-mpi, @THSLP13, @Terryxtl for testing and debugging
 - @Dtwpurple, @WinterholdPrime, @Dhia-zorai, @fraPCI for compatibility reports
 
+## Special Thanks
+
+Lumine is built on top of [tcc-g15](https://github.com/AlexIII/tcc-g15).
+
+Special thanks to its author for implementing the WMI-based thermal control interface that made this project possible.
+
+---
+
 ## License
 
-© github.com/Stevesuk
-
-GPL v3
+GPL v3 © Stevesuk
