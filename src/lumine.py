@@ -30,30 +30,30 @@ if win32api.GetLastError() == winerror.ERROR_ALREADY_EXISTS:
         title=Text.app_name.value,
         message=Text.already_started.value,
         detail=Text.already_started_detailed.value,
-        option='ok',
-        icon='warning'
+        option="ok",
+        icon="warning",
     )
     sys.exit()
 
 class LumineApp:
     def __init__(self):
         self.size = (900, 270)
-        self.version = 'v1.4'
+        self.version = "v1.4"
 
-        self.config = Configuration.use('config')
+        self.config = Configuration.use("config")
 
-        if Configuration.get(self.config, 'lumine_version', None) != self.version:
+        if Configuration.get(self.config, "lumine_version", None) != self.version:
             Configuration.raw_sync(self.config, Text.example_config.value)
-            self.config = Configuration.use('config')
+            self.config = Configuration.use("config")
 
         self.awcc = AWCCThermal.AWCCThermal()
         self.hardware = DetectHardware.DetectHardware()
-        
+
         self.current_mode = 0
         self.original_mode = 0
         self.keypressed_mode = None
-        
-        self.failsafe = True
+
+        self.failsafe = False
         self.failsafe_activated = False
 
         self.awccthermal = AWCCThermal.AWCCThermal()
@@ -63,18 +63,36 @@ class LumineApp:
         self.gpu_name = self.hardware.getHardwareName(self.hardware.GPUFanIdx)
         self.cpu_name = self.hardware.getHardwareName(self.hardware.CPUFanIdx)
 
-        self.failsafe_cpu = Configuration.get(self.config, 'failsafe_cpu')
-        self.failsafe_gpu = Configuration.get(self.config, 'failsafe_gpu')
-        self.disable_protect_after = Configuration.get(self.config, 'disable_protect_after')
-        
+        self.failsafe_cpu = Configuration.get(self.config, "failsafe_cpu")
+        self.failsafe_gpu = Configuration.get(self.config, "failsafe_gpu")
+        self.disable_protect_after = Configuration.get(
+            self.config, "disable_protect_after"
+        )
+
         self.create_window()
         self.show_widgets()
 
-        self.root.after(Configuration.get(self.config, 'update_interval', 1000), self.update_info)
+        self.root.after(
+            Configuration.get(self.config, "update_interval", 1000), self.update_info
+        )
         self.root.protocol("WM_DELETE_WINDOW", self.root.withdraw)
 
-        threading.Thread(target=self.wait_key, args=(Configuration.get(self.config, 'g_mode_hotkey', 'f17'), lambda: self.add_mode_event(2)), daemon=True).start()
-        threading.Thread(target=self.wait_key, args=(Configuration.get(self.config, 'balanced_mode_hotkey', 'f20'), lambda: self.add_mode_event(1)), daemon=True).start()
+        threading.Thread(
+            target=self.wait_key,
+            args=(
+                Configuration.get(self.config, "g_mode_hotkey", "f17"),
+                lambda: self.add_mode_event(2),
+            ),
+            daemon=True,
+        ).start()
+        threading.Thread(
+            target=self.wait_key,
+            args=(
+                Configuration.get(self.config, "balanced_mode_hotkey", "f20"),
+                lambda: self.add_mode_event(1),
+            ),
+            daemon=True,
+        ).start()
 
         self.set_mode(0)
         threading.Thread(target=self.check_update, daemon=True).start()
@@ -96,70 +114,83 @@ class LumineApp:
         self.root.topmost(False)
 
     def reload_config(self):
-        self.config = Configuration.use('config')
+        self.config = Configuration.use("config")
 
-        toast = Notification(app_id='Lumine',
+        toast = Notification(
+            app_id="Lumine",
             title=Text.config_reloaded_title.value,
             msg=Text.config_reloaded_msg.value,
-            icon=os.path.abspath('icons/icon.png'),
+            icon=os.path.abspath("icons/icon.png"),
         )
-        
+
         toast.show()
 
     def show_about(self):
         maliang.TkMessage(
             title=Text.about_title.value,
-            message=Text.about_message.value.format(version=self.version, author='@Stevesuk0'),
-            detail=Text.about_detail.value + f'\n\nThis language "{Text.language_name.value}" was translated by: \n{Text.translate_by.value}',
-            option='ok'
+            message=Text.about_message.value.format(
+                version=self.version, author="@Stevesuk0"
+            ),
+            detail=Text.about_detail.value
+            + f'\n\nThis language "{Text.language_name.value}" was translated by: \n{Text.translate_by.value}',
+            option="ok",
         )
-    
+
     def check_update(self):
-        response = requests.get('https://api.github.com/repos/Stevesuk0/Lumine/releases/latest')
-        
-        latest_version = response.json().get('tag_name')
+        response = requests.get(
+            "https://api.github.com/repos/Stevesuk0/Lumine/releases/latest"
+        )
+
+        latest_version = response.json().get("tag_name")
 
         if latest_version != self.version:
             Notification(
-                app_id='Lumine',
-                    title=Text.update_new_title.value,
-                    msg=Text.update_new_msg.value.format(latest=latest_version),
-                    icon=os.path.abspath('icons/icon.png'),
-                    launch='https://github.com/Stevesuk0/Lumine/releases'
+                app_id="Lumine",
+                title=Text.update_new_title.value,
+                msg=Text.update_new_msg.value.format(latest=latest_version),
+                icon=os.path.abspath("icons/icon.png"),
+                launch="https://github.com/Stevesuk0/Lumine/releases",
             ).show()
         else:
             Notification(
-                app_id='Lumine',
-                    title=Text.update_latest_title.value,
-                    msg=Text.update_latest_msg.value.format(version=self.version),
-                    icon=os.path.abspath('icons/icon.png'),
+                app_id="Lumine",
+                title=Text.update_latest_title.value,
+                msg=Text.update_latest_msg.value.format(version=self.version),
+                icon=os.path.abspath("icons/icon.png"),
             ).show()
-
 
     def toggle_theme(self):
         current = maliang.theme.get_color_mode()
 
         match current:
-            case 'dark': maliang.theme.set_color_mode('light')
-            case 'light': maliang.theme.set_color_mode('dark')
+            case "dark":
+                maliang.theme.set_color_mode("light")
+            case "light":
+                maliang.theme.set_color_mode("dark")
 
     def show_tray(self):
-        self.tray = Icon("TkTray", icon=Image.open('icons/icon.png').resize((64, 64)), menu=Menu(
-            MenuItem(text=f'Lumine {self.version}', action=self.show_about),
-            Menu.SEPARATOR,
-            MenuItem(Text.tray_show_window.value, self.show_window, default=True),
-            MenuItem(Text.tray_reload_config.value, self.reload_config),
-            MenuItem(Text.tray_toggle_theme.value, self.toggle_theme),
-            MenuItem(Text.tray_check_updates.value, self.check_update),
-            Menu.SEPARATOR,
-            MenuItem(Text.tray_exit.value, self.root.destroy)
-        ))
+        self.tray = Icon(
+            "TkTray",
+            icon=Image.open("icons/icon.png").resize((64, 64)),
+            menu=Menu(
+                MenuItem(text=f"Lumine {self.version}", action=self.show_about),
+                Menu.SEPARATOR,
+                MenuItem(Text.tray_show_window.value, self.show_window, default=True),
+                MenuItem(Text.tray_reload_config.value, self.reload_config),
+                MenuItem(Text.tray_toggle_theme.value, self.toggle_theme),
+                MenuItem(Text.tray_check_updates.value, self.check_update),
+                Menu.SEPARATOR,
+                MenuItem(Text.tray_exit.value, self.root.destroy),
+            ),
+        )
         self.tray.run()
 
     def create_window(self):
         self.root = maliang.Tk(size=self.size)
         self.root.title("Lumine")
-        self.root.icon(maliang.PhotoImage(Image.open("icons/icon.png").resize((64, 64))))
+        self.root.icon(
+            maliang.PhotoImage(Image.open("icons/icon.png").resize((64, 64)))
+        )
         maliang.theme.customize_window(self.root, disable_maximize_button=True)
 
         self.root.maxsize(*self.size)
@@ -169,115 +200,229 @@ class LumineApp:
         self.cv = maliang.Canvas(self.root)
         self.cv.place(x=0, y=0, width=self.size[0], height=self.size[1])
 
-        maliang.configs.Env.system = 'Windows10'
-        self.ui_gpu_name = maliang.Text(self.cv, position=(25, 15), text=self.gpu_name, fontsize=18, family=Configuration.get(self.config, 'font', 'Segoe UI'))
-        self.ui_gpu_temp = maliang.ProgressBar(self.cv, position=(25, 45), size=(310, 40))
-        self.ui_gpu_temp_text = maliang.Text(self.cv, position=(350, 55), fontsize=18, family=Configuration.get(self.config, 'font', 'Segoe UI'))
-        self.ui_gpu_fan = maliang.ProgressBar(self.cv, position=(25, 95), size=(310, 40))
-        self.ui_gpu_fan_text = maliang.Text(self.cv, position=(350, 105), fontsize=18, family=Configuration.get(self.config, 'font', 'Segoe UI'))
+        maliang.configs.Env.system = "Windows10"
+        self.ui_gpu_name = maliang.Text(
+            self.cv,
+            position=(25, 15),
+            text=self.gpu_name,
+            fontsize=18,
+            family=Configuration.get(self.config, "font", "Segoe UI"),
+        )
+        self.ui_gpu_temp = maliang.ProgressBar(
+            self.cv, position=(25, 45), size=(310, 40)
+        )
+        self.ui_gpu_temp_text = maliang.Text(
+            self.cv,
+            position=(350, 55),
+            fontsize=18,
+            family=Configuration.get(self.config, "font", "Segoe UI"),
+        )
+        self.ui_gpu_fan = maliang.ProgressBar(
+            self.cv, position=(25, 95), size=(310, 40)
+        )
+        self.ui_gpu_fan_text = maliang.Text(
+            self.cv,
+            position=(350, 105),
+            fontsize=18,
+            family=Configuration.get(self.config, "font", "Segoe UI"),
+        )
 
         ui_cpu_prefix = self.size[0] // 2 - 20
 
-        self.ui_cpu_name = maliang.Text(self.cv, position=(ui_cpu_prefix + 25, 15), text=self.cpu_name, fontsize=18, family=Configuration.get(self.config, 'font', 'Segoe UI'))
-        self.ui_cpu_temp = maliang.ProgressBar(self.cv, position=(ui_cpu_prefix + 25, 45), size=(310, 40))
-        self.ui_cpu_temp_text = maliang.Text(self.cv, position=(ui_cpu_prefix + 350, 55), fontsize=18, family=Configuration.get(self.config, 'font', 'Segoe UI'))
-        self.ui_cpu_fan = maliang.ProgressBar(self.cv, position=(ui_cpu_prefix + 25, 95), size=(310, 40))
-        self.ui_cpu_fan_text = maliang.Text(self.cv, position=(ui_cpu_prefix + 350, 105), fontsize=18, family=Configuration.get(self.config, 'font', 'Segoe UI'))
+        self.ui_cpu_name = maliang.Text(
+            self.cv,
+            position=(ui_cpu_prefix + 25, 15),
+            text=self.cpu_name,
+            fontsize=18,
+            family=Configuration.get(self.config, "font", "Segoe UI"),
+        )
+        self.ui_cpu_temp = maliang.ProgressBar(
+            self.cv, position=(ui_cpu_prefix + 25, 45), size=(310, 40)
+        )
+        self.ui_cpu_temp_text = maliang.Text(
+            self.cv,
+            position=(ui_cpu_prefix + 350, 55),
+            fontsize=18,
+            family=Configuration.get(self.config, "font", "Segoe UI"),
+        )
+        self.ui_cpu_fan = maliang.ProgressBar(
+            self.cv, position=(ui_cpu_prefix + 25, 95), size=(310, 40)
+        )
+        self.ui_cpu_fan_text = maliang.Text(
+            self.cv,
+            position=(ui_cpu_prefix + 350, 105),
+            fontsize=18,
+            family=Configuration.get(self.config, "font", "Segoe UI"),
+        )
 
-        maliang.configs.Env.system = 'Windows11'
-        self.ui_gpu_fan_slider = maliang.Slider(self.cv, position=(25, 150), size=(310, 40), default=0.5)
+        maliang.configs.Env.system = "Windows11"
+        self.ui_gpu_fan_slider = maliang.Slider(
+            self.cv, position=(25, 150), size=(310, 40), default=0.5
+        )
         self.ui_gpu_fan_slider.bind_on_update(self.set_fan)
-        self.ui_gpu_fan_slitext = maliang.Text(self.cv, position=(349, 155), text=Text.fan_speed.value, fontsize=18, family=Configuration.get(self.config, 'font', 'Segoe UI'))
+        self.ui_gpu_fan_slitext = maliang.Text(
+            self.cv,
+            position=(349, 155),
+            text=Text.fan_speed.value,
+            fontsize=18,
+            family=Configuration.get(self.config, "font", "Segoe UI"),
+        )
 
-        self.ui_cpu_fan_slider = maliang.Slider(self.cv, position=(ui_cpu_prefix + 25, 150), size=(310, 40), default=0.5)
+        self.ui_cpu_fan_slider = maliang.Slider(
+            self.cv, position=(ui_cpu_prefix + 25, 150), size=(310, 40), default=0.5
+        )
         self.ui_cpu_fan_slider.bind_on_update(self.set_fan)
-        self.ui_cpu_fan_slitext = maliang.Text(self.cv, position=(ui_cpu_prefix + 349, 155), text=Text.fan_speed.value, fontsize=18, family=Configuration.get(self.config, 'font', 'Segoe UI'))
+        self.ui_cpu_fan_slitext = maliang.Text(
+            self.cv,
+            position=(ui_cpu_prefix + 349, 155),
+            text=Text.fan_speed.value,
+            fontsize=18,
+            family=Configuration.get(self.config, "font", "Segoe UI"),
+        )
 
-        self.ui_modeset = maliang.SegmentedButton(self.cv, position=(25, 205), text=(Text.mode_balanced.value, Text.mode_gmode.value, Text.mode_custom.value), fontsize=18, family=Configuration.get(self.config, 'font', 'Segoe UI'), command=self.set_mode, default=0)
+        self.ui_modeset = maliang.SegmentedButton(
+            self.cv,
+            position=(25, 205),
+            text=(
+                Text.mode_balanced.value,
+                Text.mode_gmode.value,
+                Text.mode_custom.value,
+            ),
+            fontsize=18,
+            family=Configuration.get(self.config, "font", "Segoe UI"),
+            command=self.set_mode,
+            default=0,
+        )
 
-        self.ui_failsafe = maliang.ToggleButton(self.cv, position=(self.size[0] - 255, 205), size=(150, self.ui_modeset.size[1]), text=Text.failsafe_label.value, fontsize=18, family=Configuration.get(self.config, 'font', 'Segoe UI'), command=self.toggle_failsafe)
-        self.ui_failsafe_status = maliang.Label(self.cv, position=(self.size[0] - 85, 205), size=(50, self.ui_modeset.size[1]))
+        self.ui_failsafe = maliang.ToggleButton(
+            self.cv,
+            default=self.failsafe,
+            position=(self.size[0] - 255, 205),
+            size=(150, self.ui_modeset.size[1]),
+            text=Text.failsafe_label.value,
+            fontsize=18,
+            family=Configuration.get(self.config, "font", "Segoe UI"),
+            command=self.toggle_failsafe,
+        )
+        self.ui_failsafe_status = maliang.Label(
+            self.cv,
+            position=(self.size[0] - 85, 205),
+            size=(50, self.ui_modeset.size[1]),
+        )
 
     def disable_overheat(self):
-        if not self.failsafe_activated:
-            self.set_mode(self.original_mode)
-            self.ui_modeset.set(self.original_mode)
-
-            self.failsafe_activated = False
-
-            self.current_mode = self.original_mode
+        self.failsafe_activated = False
+        self.set_mode(self.original_mode)
+        self.ui_modeset.set(self.original_mode)
 
     def update_info(self):
         gpu_fan_id = self.awccthermal.GPUFanIdx
         cpu_fan_id = self.awccthermal.CPUFanIdx
 
-        self.ui_gpu_temp.set(self.awccthermal.getFanRelatedTemp(self.hardware.GPUFanIdx) / 95)
-        self.ui_gpu_temp_text.set(f'{self.awccthermal.getFanRelatedTemp(self.hardware.GPUFanIdx)} °C')
+        self.ui_gpu_temp.set(
+            self.awccthermal.getFanRelatedTemp(self.hardware.GPUFanIdx) / 95
+        )
+        self.ui_gpu_temp_text.set(
+            f"{self.awccthermal.getFanRelatedTemp(self.hardware.GPUFanIdx)} °C"
+        )
         self.ui_gpu_fan.set(self.awccthermal.getFanRPM(gpu_fan_id) / 6000)
-        self.ui_gpu_fan_text.set(f'{self.awccthermal.getFanRPM(gpu_fan_id)} {Text.rpm.value}')
+        self.ui_gpu_fan_text.set(
+            f"{self.awccthermal.getFanRPM(gpu_fan_id)} {Text.rpm.value}"
+        )
 
-        self.ui_cpu_temp.set(self.awccthermal.getFanRelatedTemp(self.hardware.CPUFanIdx) / 110)
-        self.ui_cpu_temp_text.set(f'{self.awccthermal.getFanRelatedTemp(self.hardware.CPUFanIdx)} °C')
+        self.ui_cpu_temp.set(
+            self.awccthermal.getFanRelatedTemp(self.hardware.CPUFanIdx) / 110
+        )
+        self.ui_cpu_temp_text.set(
+            f"{self.awccthermal.getFanRelatedTemp(self.hardware.CPUFanIdx)} °C"
+        )
         self.ui_cpu_fan.set(self.awccthermal.getFanRPM(cpu_fan_id) / 6000)
-        self.ui_cpu_fan_text.set(f'{self.awccthermal.getFanRPM(cpu_fan_id)} {Text.rpm.value}')
+        self.ui_cpu_fan_text.set(
+            f"{self.awccthermal.getFanRPM(cpu_fan_id)} {Text.rpm.value}"
+        )
 
-        colors = Configuration.get(self.config, 'colors', {
-                        "temp": "#98C379",
-                        "fan": "#61AFEF",
-                        "bg": "#202020",
-                        "outline": "#282C34",
-                        "normal": "#98C379",
-                        "warning": "#E5C07B",
-                        "overheat": "#E06C75"
-                    }
+        colors = Configuration.get(
+            self.config,
+            "colors",
+            {
+                "temp": "#98C379",
+                "fan": "#61AFEF",
+                "bg": "#202020",
+                "outline": "#282C34",
+                "normal": "#98C379",
+                "warning": "#E5C07B",
+                "overheat": "#E06C75",
+            },
+        )
+
+        color_tempbar = colors["temp"]
+        color_fanbar = colors["fan"]
+
+        if maliang.theme.get_color_mode() == "light":
+            color_barbg = "#E1E1E1"
+            color_barol = "#E1E1E1"
+            for i in self.ui_modeset.children:
+                i.style.set(
+                    bg=(
+                        "#FBFBFB",
+                        "#FAFAFA",
+                        "#F3F3F3",
+                        "#EEEEEE",
+                        "#F3F3F3",
+                        "#F3F3F3",
+                    ),
+                    ol=("", "", "", "", "", ""),
                 )
-        
-        color_tempbar = colors['temp']
-        color_fanbar = colors['fan']
-
-        if maliang.theme.get_color_mode() == 'light':
-            color_barbg = '#E1E1E1'
-            color_barol = '#E1E1E1'
-            for i in self.ui_modeset.children: i.style.set(bg=('#FBFBFB', '#FAFAFA', '#F3F3F3', '#EEEEEE', '#F3F3F3', '#F3F3F3'), ol=('', '', '', '', '', ''))
         else:
-            color_barbg = '#333333'
-            color_barol = '#333333'
-            for i in self.ui_modeset.children: i.style.set(bg=('#2B2B2B', '#3C3C3C', '#323232', '#3C3C3C', '#3C3C3C', '#323232'), ol=('', '', '', '', '', ''))
+            color_barbg = "#333333"
+            color_barol = "#333333"
+            for i in self.ui_modeset.children:
+                i.style.set(
+                    bg=(
+                        "#2B2B2B",
+                        "#3C3C3C",
+                        "#323232",
+                        "#3C3C3C",
+                        "#3C3C3C",
+                        "#323232",
+                    ),
+                    ol=("", "", "", "", "", ""),
+                )
 
-        color_normal = colors['normal']
-        color_warning = colors['warning']
-        color_overheat = colors['overheat']
+        color_normal = colors["normal"]
+        color_warning = colors["warning"]
+        color_overheat = colors["overheat"]
 
         self.ui_gpu_temp.style.set(
-            bg_bar  = (color_tempbar, color_tempbar), 
-            ol_bar  = (color_tempbar, color_tempbar), 
-            bg_slot = (color_barbg, color_barbg), 
-            ol_slot = (color_barol, color_barol),
+            bg_bar=(color_tempbar, color_tempbar),
+            ol_bar=(color_tempbar, color_tempbar),
+            bg_slot=(color_barbg, color_barbg),
+            ol_slot=(color_barol, color_barol),
         )
 
         self.ui_cpu_temp.style.set(
-            bg_bar  = (color_tempbar, color_tempbar), 
-            ol_bar  = (color_tempbar, color_tempbar), 
-            bg_slot = (color_barbg, color_barbg), 
-            ol_slot = (color_barol, color_barbg),
+            bg_bar=(color_tempbar, color_tempbar),
+            ol_bar=(color_tempbar, color_tempbar),
+            bg_slot=(color_barbg, color_barbg),
+            ol_slot=(color_barol, color_barbg),
         )
 
         self.ui_gpu_fan.style.set(
-            bg_bar  = (color_fanbar, color_fanbar), 
-            ol_bar  = (color_fanbar, color_fanbar), 
-            bg_slot = (color_barbg, color_barbg), 
-            ol_slot = (color_barol, color_barol),
-        )
-        
-        self.ui_cpu_fan.style.set(
-            bg_bar  = (color_fanbar, color_fanbar), 
-            ol_bar  = (color_fanbar, color_fanbar), 
-            bg_slot = (color_barbg, color_barbg), 
-            ol_slot = (color_barol, color_barol),
+            bg_bar=(color_fanbar, color_fanbar),
+            ol_bar=(color_fanbar, color_fanbar),
+            bg_slot=(color_barbg, color_barbg),
+            ol_slot=(color_barol, color_barol),
         )
 
-        overheat_level = Configuration.get(self.config, 'temp_overheat', (85, 95))
-        warning_level = Configuration.get(self.config, 'temp_warning', (72, 85))
+        self.ui_cpu_fan.style.set(
+            bg_bar=(color_fanbar, color_fanbar),
+            ol_bar=(color_fanbar, color_fanbar),
+            bg_slot=(color_barbg, color_barbg),
+            ol_slot=(color_barol, color_barol),
+        )
+
+        overheat_level = Configuration.get(self.config, "temp_overheat", (85, 95))
+        warning_level = Configuration.get(self.config, "temp_warning", (72, 85))
 
         self.failsafe_gpu = overheat_level[0]
         self.failsafe_cpu = overheat_level[1]
@@ -292,87 +437,100 @@ class LumineApp:
 
         if gpu_temp >= self.warning_gpu:
             if not self.failsafe_activated:
-                self.ui_failsafe_status.style.set(bg=(color_warning, color_warning)) 
+                self.ui_failsafe_status.style.set(bg=(color_warning, color_warning))
             self.ui_gpu_temp.style.set(
-                bg_bar  = (color_warning, color_warning), 
-                ol_bar  = (color_warning, color_warning), 
-                bg_slot = (color_barbg, color_barbg), 
-                ol_slot = (color_barol, color_barol),
+                bg_bar=(color_warning, color_warning),
+                ol_bar=(color_warning, color_warning),
+                bg_slot=(color_barbg, color_barbg),
+                ol_slot=(color_barol, color_barol),
             )
         if gpu_temp >= self.failsafe_gpu:
             self.ui_gpu_temp.style.set(
-                bg_bar  = (color_overheat, color_overheat), 
-                ol_bar  = (color_overheat, color_overheat), 
-                bg_slot = (color_barbg, color_barbg), 
-                ol_slot = (color_barol, color_barol),
+                bg_bar=(color_overheat, color_overheat),
+                ol_bar=(color_overheat, color_overheat),
+                bg_slot=(color_barbg, color_barbg),
+                ol_slot=(color_barol, color_barol),
             )
         if cpu_temp >= self.warning_cpu:
             if not self.failsafe_activated:
-                self.ui_failsafe_status.style.set(bg=(color_warning, color_warning)) 
+                self.ui_failsafe_status.style.set(bg=(color_warning, color_warning))
             self.ui_cpu_temp.style.set(
-                bg_bar  = (color_warning, color_warning), 
-                ol_bar  = (color_warning, color_warning), 
-                bg_slot = (color_barbg, color_barbg), 
-                ol_slot = (color_barol, color_barol),
+                bg_bar=(color_warning, color_warning),
+                ol_bar=(color_warning, color_warning),
+                bg_slot=(color_barbg, color_barbg),
+                ol_slot=(color_barol, color_barol),
             )
         if cpu_temp >= self.failsafe_cpu:
             self.ui_cpu_temp.style.set(
-                bg_bar  = (color_overheat, color_overheat), 
-                ol_bar  = (color_overheat, color_overheat), 
-                bg_slot = (color_barbg, color_barbg), 
-                ol_slot = (color_barol, color_barol),
+                bg_bar=(color_overheat, color_overheat),
+                ol_bar=(color_overheat, color_overheat),
+                bg_slot=(color_barbg, color_barbg),
+                ol_slot=(color_barol, color_barol),
             )
 
-
-        if self.failsafe:
+        if not self.failsafe:
             if overheat:
                 if not self.failsafe_activated:
                     self.failsafe_activated = True
 
-                    self.ui_failsafe_status.style.set(bg=(color_overheat, color_overheat))
+                    self.ui_failsafe_status.style.set(
+                        bg=(color_overheat, color_overheat)
+                    )
                     self.original_mode = self.current_mode
                     self.awccthermal.setMode(self.awccthermal.Mode.G_Mode)
                     self.ui_modeset.set(1)
 
-                    self.root.after(Configuration.get(self.config, 'disable_protect_after', 30) * 1000, self.disable_overheat)
+                    self.root.after(
+                        Configuration.get(self.config, "disable_protect_after", 30)
+                        * 1000,
+                        self.disable_overheat,
+                    )
             else:
                 if not self.failsafe_activated:
-                    self.ui_failsafe_status.style.set(bg=(color_normal, color_normal)) 
+                    self.ui_failsafe_status.style.set(bg=(color_normal, color_normal))
         else:
-            self.ui_failsafe_status.style.set(bg=('#2B2B2B', '#2B2B2B')) 
+            self.ui_failsafe_status.style.set(bg=("#2B2B2B", "#2B2B2B"))
 
-        if not self.keypressed_mode is None:
+        if self.keypressed_mode is not None:
             match self.keypressed_mode:
                 case 1:
-                    toast = Notification(app_id='Lumine',
+                    toast = Notification(
+                        app_id="Lumine",
                         title=Text.mode_changed_title.value,
                         msg=Text.mode_balanced_msg.value,
-                        icon=os.path.abspath('icons/balanced.png'),
+                        icon=os.path.abspath("icons/balanced.png"),
                     )
-                    
+
                     toast.show()
 
                 case 2:
-                    toast = Notification(app_id='Lumine',
+                    toast = Notification(
+                        app_id="Lumine",
                         title=Text.mode_changed_title.value,
                         msg=Text.mode_gmode_msg.value,
-                        icon=os.path.abspath('icons/performance.png'),
+                        icon=os.path.abspath("icons/performance.png"),
                     )
-                    
+
                     toast.show()
 
-            self.set_mode(self.keypressed_mode)
+            self.set_mode(self.keypressed_mode - 1)
             self.ui_modeset.set(self.keypressed_mode)
             self.keypressed_mode = None
 
-        self.root.after(Configuration.get(self.config, 'update_interval'), self.update_info)
+        self.root.after(
+            Configuration.get(self.config, "update_interval"), self.update_info
+        )
 
     def set_fan(self, type, _):
-        if type == 'hover' or type == 'active':
-            self.ui_gpu_fan_slitext.set(str(int(self.ui_gpu_fan_slider.get() * 100)) + '%')
-            self.ui_cpu_fan_slitext.set(str(int(self.ui_cpu_fan_slider.get() * 100)) + '%')
+        if type == "hover" or type == "active":
+            self.ui_gpu_fan_slitext.set(
+                str(int(self.ui_gpu_fan_slider.get() * 100)) + "%"
+            )
+            self.ui_cpu_fan_slitext.set(
+                str(int(self.ui_cpu_fan_slider.get() * 100)) + "%"
+            )
 
-        if type == 'normal':
+        if type == "normal":
             self.ui_gpu_fan_slitext.set(Text.fan_speed.value)
             self.ui_cpu_fan_slitext.set(Text.fan_speed.value)
 
@@ -399,10 +557,12 @@ class LumineApp:
                 self.ui_gpu_fan_slider.disable(False)
                 self.ui_cpu_fan_slider.disable(False)
                 self.awccthermal.setMode(self.awccthermal.Mode.Custom)
-                self.set_fan('normal', '')
+                self.set_fan("normal", "")
 
     def toggle_failsafe(self, value):
-        self.failsafe = not value
+        print(self.failsafe)
+        self.failsafe = value
+
 
 if __name__ == "__main__":
     LumineApp()
