@@ -2,7 +2,7 @@ from enum import Enum
 
 class Text(Enum):
     language_name = '日本語'
-    translate_by = 'Claude <noreply@anthropic.com>'
+    translate_by = 'Claude <noreply@anthropic.com>, Haraguse <chihuyou90@gmail.com>'
 
     # Basic
     app_name = "Lumine"
@@ -25,7 +25,7 @@ class Text(Enum):
 
     # About window
     about_title = "Lumine について"
-    about_message = "Lumine {version}（作者：{author}）"
+    about_message = "Lumine {version}（開発者：{author}）"
 
     # Tray menu
     tray_view_source = "ソースコードを表示..."
