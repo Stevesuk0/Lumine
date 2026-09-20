@@ -58,6 +58,7 @@ class LumineApp:
         self.current_mode = 0
         self.original_mode = 0
         self.keypressed_mode = None
+        self.hotkey_handlers = []
 
         self.failsafe = False
         self.failsafe_activated = False
@@ -83,22 +84,7 @@ class LumineApp:
         )
         self.root.protocol("WM_DELETE_WINDOW", self.root.withdraw)
 
-        threading.Thread(
-            target=self.wait_key,
-            args=(
-                Configuration.get(self.config, "g_mode_hotkey", "f17"),
-                lambda: self.add_mode_event(2),
-            ),
-            daemon=True,
-        ).start()
-        threading.Thread(
-            target=self.wait_key,
-            args=(
-                Configuration.get(self.config, "balanced_mode_hotkey", "f20"),
-                lambda: self.add_mode_event(1),
-            ),
-            daemon=True,
-        ).start()
+        self.register_hotkeys()
 
         self.set_mode(0)
         threading.Thread(target=self.check_update, daemon=True).start()
@@ -106,10 +92,35 @@ class LumineApp:
 
         self.root.mainloop()
 
-    def wait_key(self, hotkey, callback):
-        while True:
-            keyboard.wait(hotkey)
-            callback()
+    def register_hotkeys(self):
+        for handler in self.hotkey_handlers:
+            try:
+                keyboard.remove_hotkey(handler)
+            except (KeyError, ValueError):
+                pass
+            
+        self.hotkey_handlers = []
+
+        g_mode_hotkey = Configuration.get(self.config, "g_mode_hotkey", "f17")
+
+        balanced_hotkey = (
+            Configuration.get(self.config, "balanced_hotkey")
+            or Configuration.get(self.config, "balanced_mode_hotkey")
+            or "f20"
+        )
+
+        for hotkey, callback in (
+            (g_mode_hotkey, lambda: self.add_mode_event(2)),
+            (balanced_hotkey, lambda: self.add_mode_event(1)),
+        ):
+            if not hotkey:
+                continue
+            try:
+                self.hotkey_handlers.append(
+                    keyboard.add_hotkey(str(hotkey), callback)
+                )
+            except (KeyError, ValueError):
+                print(f"Invalid hotkey: {hotkey}")
 
     def add_mode_event(self, mode):
         self.keypressed_mode = mode
@@ -121,6 +132,7 @@ class LumineApp:
 
     def reload_config(self):
         self.config = Configuration.use("config")
+        self.register_hotkeys()
 
         toast = Notification(
             app_id="Lumine",
@@ -532,7 +544,7 @@ class LumineApp:
                         toast.show()
 
                 self.set_mode(self.keypressed_mode - 1)
-                self.ui_modeset.set(self.keypressed_mode)
+                self.ui_modeset.set(self.keypressed_mode - 1)
 
             self.keypressed_mode = None
 
